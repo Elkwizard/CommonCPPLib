@@ -1,15 +1,12 @@
 #pragma once
 
-#include "./string.hpp"
-
-#define UNICODE
-#define NOMINMAX
+#include "string.hpp"
+#include "windows.hpp"
 
 #include <iostream>
 #include <string>
 #include <cmath>
 #include <mutex>
-#include <Windows.h>
 #include <sstream>
 
 namespace util {

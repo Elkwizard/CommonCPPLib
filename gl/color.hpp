@@ -210,8 +210,9 @@ namespace gl {
 	};
 
 	template <typename T>
-	std::ostream operator <<(std::ostream& out, const BaseColor<T>& color) {
+	std::ostream& operator <<(std::ostream& out, const BaseColor<T>& color) {
 		out << "rgba(" << (float)color.r << ", " << (float)color.g << ", " << (float)color.b << ", " << (float)color.a << ")";
+		return out;
 	}
 
 	using Color = BaseColor<HalfFloat>;

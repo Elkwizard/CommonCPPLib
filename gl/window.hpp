@@ -1,20 +1,15 @@
 #pragma once
 
-#define UNICODE
-
+#include "../util/windows.hpp"
 #include "../util/debug.hpp"
 #include "../util/string.hpp"
 
 #include <iostream>
-#define NOMINMAX
-#include <Windows.h>
 #include <cmath>
 #include <string>
 #include <vector>
 #include <functional>
 #include <unordered_map>
-
-#pragma comment(lib, "User32")
 
 namespace window {
 	class Point {
@@ -50,11 +45,12 @@ namespace window {
 			bool contains(Point p) {
 				return p.x >= x && p.y >= y && p.x <= x + width && p.y <= y + height; 
 			}
-
-			operator std::string() const {
-				return std::to_string(width) + "x" + std::to_string(height) + " at " + std::to_string(x) + ", " + std::to_string(y);
-			}
 	};
+
+	std::ostream& operator <<(std::ostream& out, const Rect& rect) {
+		out << rect.width << "x" << rect.height << " at " << rect.x << ", " << rect.y;
+		return out;
+	}
 
 	using CallbackID = int;
 

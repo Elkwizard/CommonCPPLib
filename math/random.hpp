@@ -279,5 +279,4 @@ namespace math {
 				return bestDist;
 			}
 	} random;
-
 }

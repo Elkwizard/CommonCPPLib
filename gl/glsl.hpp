@@ -430,7 +430,7 @@ namespace gl {
 			std::unordered_map<std::string, Attribute> attributes { };
 			GLSL(GL& _gl, std::string _name, ErrorCallback _onerror = nullptr)
 			: gl(_gl), uniforms({ *this }), divisors({ *this }) , uniformBuffers({ *this }) {
-				onerror = _onerror == nullptr ? [=](std::string type, std::string msg) {
+				onerror = _onerror == nullptr ? [=, this](std::string type, std::string msg) {
 					throw std::runtime_error(("[" + name + "] " + type + " error: " + msg).c_str());
 				} : _onerror;
 				name = _name;
