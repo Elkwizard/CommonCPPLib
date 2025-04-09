@@ -1,7 +1,7 @@
 #pragma once
 
 #include "gl.hpp"
-#include "../util/math.hpp"
+#include "../math/util.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -107,9 +107,9 @@ namespace gl {
 						READ_FIELD(unsigned int, GreenChannelMask);
 						READ_FIELD(unsigned int, BlueChannelMask);
 						
-						int redChannelOffset = util::firstBitIndex(RedChannelMask);
-						int greenChannelOffset = util::firstBitIndex(GreenChannelMask);
-						int blueChannelOffset = util::firstBitIndex(BlueChannelMask);
+						int redChannelOffset = math::firstBitIndex(RedChannelMask);
+						int greenChannelOffset = math::firstBitIndex(GreenChannelMask);
+						int blueChannelOffset = math::firstBitIndex(BlueChannelMask);
 
 						for (int j = 0; j < height; j++) {
 							for (int i = 0; i < width; i++) {

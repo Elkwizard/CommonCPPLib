@@ -1,6 +1,6 @@
 #pragma once
 
-#include "math.hpp"
+#include "../math/util.hpp"
 
 #include <iostream>
 #include <string>
@@ -35,7 +35,7 @@ namespace util {
 					return;
 
 				std::string toDisplay = "[";
-				int filled = clamp((float)counter / total, 0.0f, 1.0f) * width;
+				int filled = math::clamp((float)counter / total, 0.0f, 1.0f) * width;
 				for (int i = 0; i < filled; i++)
 					toDisplay += "#";
 				for (int i = filled; i < width; i++)

@@ -2,7 +2,7 @@
 
 #include "debug.hpp"
 #include "string.hpp"
-#include "math.hpp"
+#include "../math/util.hpp"
 
 #include <mutex>
 #include <chrono>
@@ -86,7 +86,7 @@ namespace util {
 					float percent = value / maxDuration;
 					
 					std::string duration = leftPad(
-						floatToString(roundTo(value / checksSinceLastSummary, 2)), 5
+						floatToString(math::roundTo(value / checksSinceLastSummary, 2)), 5
 					) + " ms"; 	
 					std::string percentage = leftPad(std::to_string((int)(value / totalDuration * 100)), 3) + "%";
 

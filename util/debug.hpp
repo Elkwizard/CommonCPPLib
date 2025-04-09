@@ -70,13 +70,6 @@ namespace util {
 			std::cout.flush();
 			printValue(expr, value, false);
 		}
-
-		template <typename T>
-		void alert(const T& value) {
-			std::stringstream stream;
-			stream << value;
-			MessageBoxA(NULL, stream.str(), "Alert", MB_OK);
-		}
 	}
 }
 
@@ -97,7 +90,8 @@ namespace util {
 
 #endif
 
-#define palert(v) do { print(v); util::alert(v); } while (false)
+#define alert(v) MessageBoxA(NULL, std::to_string(v).c_str(), "Alert", MB_OK)
+#define palert(v) do { print(v); alert(v); } while (false)
 
 #ifdef PRINT_CONSTRUCTION
 

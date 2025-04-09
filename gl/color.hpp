@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../util/math.hpp"
+#include "../math/util.hpp"
 
 #include <string>
 
@@ -22,7 +22,7 @@ namespace gl {
 
 				if (f32 != 0.0f) {
 					f16 = 0;
-					short exp = util::clamp(exponent, -14, 15) + 15;
+					short exp = math::clamp(exponent, -14, 15) + 15;
 					f16 |= sign << 15;
 					f16 |= exp << 10;
 					f16 |= mantissa >> 13;	
