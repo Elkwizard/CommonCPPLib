@@ -14,7 +14,6 @@ namespace util {
 			std::string lastDisplayed = "";
 
 		public:
-
 			ProgressBar(int _total, const std::string& _name = "", int _width = 30) {
 				total = total;
 				counter = 0;

@@ -4,6 +4,7 @@
 #include <vector>
 #include <regex>
 #include <type_traits>
+#include <sstream>
 
 namespace util {
 	std::wstring widen(const std::string& str) {

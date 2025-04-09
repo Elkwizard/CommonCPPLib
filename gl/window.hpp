@@ -17,8 +17,16 @@
 #pragma comment(lib, "User32")
 
 namespace window {
-	struct Point {
-		int x, y;
+	class Point {
+		public:
+			int x, y;
+
+			Point(int _x, int _y) {
+				x = _x;
+				y = _y;
+			}
+			
+			Point() : Point(0, 0) { }
 	};
 
 	class Rect {
@@ -48,31 +56,49 @@ namespace window {
 			}
 	};
 
-	class Callback;
-
 	using CallbackID = int;
 
 	class Window {
 		private:
 			HINSTANCE appInstance;
 			int resizeBuffer = 0;
-			CallbackID nextCallbackID = 0;
 
-			using CallbackFn = std::function<void()>;
-			using EventHandler = std::unordered_map<CallbackID, CallbackFn>; 
 			
-			void handleEvent(const EventHandler& callbacks) {
-				for (auto& callback : callbacks)
-					callback.second();
-			}
-
 			void invalidateWindowCaches() {
 				SetWindowPos(handle, HWND_TOP, location.x - resizeBuffer, location.y, location.width + resizeBuffer * 2, location.height + resizeBuffer, SWP_FRAMECHANGED);
 			}
-
+			
 		public:
-			EventHandler timerEvent { };
-			EventHandler resizeEvent { };
+			class Event {
+				public:
+					using Callback = std::function<void()>;
+
+				private:
+					std::unordered_map<CallbackID, Callback> callbacks; 
+					int nextID = 0;
+
+				public:
+				
+					Event() { }
+
+					CallbackID operator ()(const Callback& fn) {
+						CallbackID id = nextID++;
+						callbacks.emplace(id, fn);
+						return id;
+					}
+
+					void remove(CallbackID id) {
+						callbacks.erase(id);
+					}
+
+					void run() {
+						for (const auto& callback : callbacks)
+							callback.second();
+					}
+			};
+
+			Event onTimer { };
+			Event onResize { };
 			HWND handle;
 			Rect location;
 			Rect client;
@@ -115,16 +141,6 @@ namespace window {
 			Window(const std::string& title, const std::string& _icon, Rect location = { CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT })
 			: Window(title, location) {
 				setIcon(_icon);
-			}
-
-			CallbackID addCallback(EventHandler& event, const CallbackFn& callback) {
-				CallbackID id = nextCallbackID++;
-				event.emplace(id, callback);
-				return id;
-			}
-
-			void removeCallback(EventHandler& event, CallbackID id) {
-				event.erase(id);
 			}
 
 			void setTitle(const std::string& _title) {
@@ -215,7 +231,7 @@ namespace window {
 				client.height = c.bottom - c.top;
 				
 				if (resized || callback) {
-					handleEvent(resizeEvent);
+					onResize.run();
 				}
 			}
 
@@ -236,29 +252,26 @@ namespace window {
 						w->adjustSize();
 					}; break;
 					case WM_TIMER: {
-						w->handleEvent(w->timerEvent);
+						w->onTimer.run();
 					}; break;
 				}
 
 				return DefWindowProc(handle, msg, wParam, lParam);
 			}
-		
-		friend class Callback;
 	};
 	
-	class Callback {
+	class EventHandler {
 		private:
 			CallbackID id;
-			Window& window;
-			Window::EventHandler& handler;
+			Window::Event& event;
 
 		public:
-			Callback(Window& _window, Window::EventHandler& _handler, const Window::CallbackFn& callback) : handler(_handler), window(_window) {
-				id = window.addCallback(handler, callback);
+			EventHandler(Window::Event& _event, const Window::Event::Callback& fn) : event(_event) {
+				id = event(fn);
 			}
 
-			~Callback() {
-				window.removeCallback(handler, id);
+			~EventHandler() {
+				event.remove(id);
 			}
 	};
 
@@ -268,7 +281,7 @@ namespace window {
 			static constexpr int REPEAT_DELAY = 20;
 			static constexpr int REPEAT_INTERVAL = 3;
 			
-			std::unique_ptr<Callback> callback;
+			std::unique_ptr<EventHandler> callback;
 
 		protected:
 			std::unordered_map<std::string, short> keyMap;
@@ -285,7 +298,7 @@ namespace window {
 				}
 				
 				// update
-				callback = std::make_unique<Callback>(w, w.timerEvent, [&]() {
+				callback = std::make_unique<EventHandler>(w.onTimer, [&]() {
 					bool focused = w.focused();
 					for (const auto& [key, id] : keyMap) {
 						keysDown.at(key) = focused && GetAsyncKeyState(id);
@@ -326,7 +339,7 @@ namespace window {
 			Point lockPoint;
 			bool locked = false;
 			int timeFocused = 0;
-			std::unique_ptr<Callback> callback;
+			std::unique_ptr<EventHandler> callback;
 
 		public:
 			int movementX = 0, movementY = 0;
@@ -336,7 +349,7 @@ namespace window {
 				{ "Middle", VK_MBUTTON },
 				{ "Right", VK_RBUTTON },
 			}) {
-				callback = std::make_unique<Callback>(w, w.timerEvent, [&]() {
+				callback = std::make_unique<EventHandler>(w.onTimer, [&]() {
 					POINT mouse;
 					
 					GetCursorPos(&mouse);

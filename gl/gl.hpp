@@ -15,7 +15,7 @@ namespace gl {
 		private:
 			HDC dc;
 			HGLRC ctx;
-			std::unique_ptr<Callback> callback;
+			std::unique_ptr<EventHandler> callback;
 
 		public:
 			Window& w;
@@ -72,7 +72,7 @@ namespace gl {
 					debugMessageCallback(errorCallback, NULL);
 				}
 				
-				callback = std::make_unique<Callback>(w, w.timerEvent, [&] {
+				callback = std::make_unique<EventHandler>(w.onTimer, [&] {
 					swapBuffers();
 				});
 			}
