@@ -53,52 +53,66 @@ namespace window {
 	}
 
 	using CallbackID = int;
+	
+	class Event {
+		public:
+			using Callback = std::function<void()>;
+
+		private:
+			std::unordered_map<CallbackID, Callback> callbacks; 
+			int nextID = 0;
+
+		public:
+			Event() { }
+
+			CallbackID operator ()(const Callback& fn) {
+				CallbackID id = nextID++;
+				callbacks.emplace(id, fn);
+				return id;
+			}
+
+			void remove(CallbackID id) {
+				callbacks.erase(id);
+			}
+
+			void run() {
+				for (const auto& callback : callbacks)
+					callback.second();
+			}
+	};
+	
+	class EventHandler {
+		private:
+			CallbackID id;
+			Event& event;
+
+		public:
+			EventHandler(Event& _event, const Event::Callback& fn) : event(_event) {
+				id = event(fn);
+			}
+
+			~EventHandler() {
+				event.remove(id);
+			}
+	};
 
 	class Window {
 		private:
 			HINSTANCE appInstance;
 			int resizeBuffer = 0;
-
 			
 			void invalidateWindowCaches() {
 				SetWindowPos(handle, HWND_TOP, location.x - resizeBuffer, location.y, location.width + resizeBuffer * 2, location.height + resizeBuffer, SWP_FRAMECHANGED);
 			}
 			
 		public:
-			class Event {
-				public:
-					using Callback = std::function<void()>;
-
-				private:
-					std::unordered_map<CallbackID, Callback> callbacks; 
-					int nextID = 0;
-
-				public:
-				
-					Event() { }
-
-					CallbackID operator ()(const Callback& fn) {
-						CallbackID id = nextID++;
-						callbacks.emplace(id, fn);
-						return id;
-					}
-
-					void remove(CallbackID id) {
-						callbacks.erase(id);
-					}
-
-					void run() {
-						for (const auto& callback : callbacks)
-							callback.second();
-					}
-			};
-
 			Event onTimer { };
 			Event onResize { };
 			HWND handle;
 			Rect location;
 			Rect client;
 			std::string title, icon;
+
 			Window(std::string _title, Rect _location = { CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT }) {
 				title = _title;
 
@@ -255,22 +269,6 @@ namespace window {
 				return DefWindowProc(handle, msg, wParam, lParam);
 			}
 	};
-	
-	class EventHandler {
-		private:
-			CallbackID id;
-			Window::Event& event;
-
-		public:
-			EventHandler(Window::Event& _event, const Window::Event::Callback& fn) : event(_event) {
-				id = event(fn);
-			}
-
-			~EventHandler() {
-				event.remove(id);
-			}
-	};
-
 	
 	class Input {
 		private:

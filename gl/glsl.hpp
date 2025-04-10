@@ -40,10 +40,7 @@ namespace gl {
 			}
 
 			std::string loadShaderSource(const std::string& src) {
-				std::string delimiter = "/";
-				std::vector<std::string> srcSegments = util::split(src, delimiter);
-				srcSegments.pop_back();
-				std::string baseSrc = util::join(srcSegments, delimiter);
+				std::string baseSrc = util::directoryName(src);
 				std::string source = util::normalizeLinebreaks(util::readTextFile(src));
 				std::vector<std::string> lines = util::split<char>(source, "\n");
 				std::string result = "";
@@ -51,7 +48,7 @@ namespace gl {
 					if (line.starts_with("#include")) {
 						std::string prefix = "#include \"";
 						std::string suffix = "\"";
-						std::string includeSrc = baseSrc + delimiter + line.substr(
+						std::string includeSrc = baseSrc + "/" + line.substr(
 							prefix.size(),
 							line.size() - prefix.size() - suffix.size()
 						);
@@ -72,12 +69,12 @@ namespace gl {
 				const GLint length[1] { (GLint)shaderSource.length() };
 
 				gl.shaderSource(shader, count, string, length);
-
 				gl.compileShader(shader);
+		
 
-				gl.getShaderInfoLog(shader, logBufferSize, &logLength, logBuffer.get());
+				gl.getShaderInfoLog(shader, logBufferSize, &logLength, logBuffer.get());		
 				handleLog(type == GL_VERTEX_SHADER ? "VERTEX_SHADER" : "FRAGMENT_SHADER");
-
+		
 				return { shader, shaderSource };
 			}
 
@@ -111,6 +108,13 @@ namespace gl {
 						case GL_FLOAT_MAT2: rows = 2; columns = 2; break;
 						case GL_FLOAT_MAT3: rows = 3; columns = 3; break;
 						case GL_FLOAT_MAT4: rows = 4; columns = 4; break;
+
+						case GL_FLOAT_MAT2x3: rows = 3; columns = 2; break;
+						case GL_FLOAT_MAT2x4: rows = 4; columns = 2; break;
+						case GL_FLOAT_MAT3x2: rows = 2; columns = 3; break;
+						case GL_FLOAT_MAT3x4: rows = 4; columns = 3; break;
+						case GL_FLOAT_MAT4x2: rows = 2; columns = 4; break;
+						case GL_FLOAT_MAT4x3: rows = 3; columns = 4; break;
 
 						case GL_INT_SAMPLER_1D:
 						case GL_INT_SAMPLER_2D:
@@ -160,12 +164,24 @@ namespace gl {
 							int size = info.rows * info.columns;
 							if (info.isMatrix) {
 								using SetMatrixArray = std::function<void(GLint, GLint, GLboolean, GLfloat*)>;
-								std::unordered_map<int, SetMatrixArray> fnMap {
-									{ 2, gl.uniformMatrix2fv },
-									{ 3, gl.uniformMatrix3fv },
-									{ 4, gl.uniformMatrix4fv }
+								std::unordered_map<int, std::unordered_map<int, SetMatrixArray>> fnMap {
+									{ 2, {
+										{ 2, gl.uniformMatrix2fv },
+										{ 3, gl.uniformMatrix2x3fv },
+										{ 4, gl.uniformMatrix2x4fv }
+									} },
+									{ 3, {
+										{ 2, gl.uniformMatrix3x2fv },
+										{ 3, gl.uniformMatrix3fv },
+										{ 4, gl.uniformMatrix3x4fv }
+									} },
+									{ 4, { 
+										{ 2, gl.uniformMatrix4x2fv },
+										{ 3, gl.uniformMatrix4x3fv },
+										{ 4, gl.uniformMatrix4fv }
+									} }
 								};
-								SetMatrixArray fn = fnMap.at(info.columns);
+								SetMatrixArray fn = fnMap.at(info.columns).at(info.rows);
 								fn(location, (GLsizei)count, false, (GLfloat*)values);
 							} else {
 								if (info.isInteger) {
@@ -302,11 +318,13 @@ namespace gl {
 			class Divisor {
 				private:
 					GL& gl;
+					GLuint buffer;
 
 				public:
 					int divisor = -1;
 					std::vector<Attribute> attributes { };
 					int stride = 0;
+
 					Divisor(GL& _gl, int _divisor) : gl(_gl) {
 						divisor = _divisor;
 					}
@@ -317,14 +335,16 @@ namespace gl {
 						attributes = other.attributes;
 					}
 
-					void operator =(GLuint buffer) {
+					void operator =(GLuint _buffer) {
+						buffer = _buffer;
 						gl.bindBuffer(GL_ARRAY_BUFFER, buffer);
 
 						GLfloat* offset = 0;
 						for (int i = 0; i < attributes.size(); i++) {
 							Attribute& attribute = attributes[i];
-							if (attribute.isFiller) offset += attribute.info.rows * attribute.info.columns;
-							else {
+							if (attribute.isFiller) {
+								offset += attribute.info.rows * attribute.info.columns;
+							} else {
 								bool enablingNeeded = !attribute.enabled;
 								if (enablingNeeded) attribute.enabled = true;
 								for (int j = 0; j < attribute.info.columns; j++) {
@@ -336,6 +356,17 @@ namespace gl {
 								}
 							}
 						}
+					}
+					
+					template <typename T>
+					void operator =(const std::vector<T>& list) {
+						gl.bindBuffer(GL_ARRAY_BUFFER, buffer);
+						gl.bufferData(GL_ARRAY_BUFFER, list.size() * sizeof(T), &list[0], GL_DYNAMIC_DRAW);
+						for (int i = 0; i < list.size() * sizeof(T) / sizeof(GLfloat); i++) {
+							float value = ((GLfloat*)&list[0])[i];
+							// std::cout << "floats[" << i << "] = " << value << std::endl;
+						}
+						*this = buffer;
 					}
 			};
 

@@ -129,7 +129,7 @@ namespace math {
 			}
 
 			float s_p1D(long x, Seed seed) {
-				return seedRand(x ^ seed < 10);
+				return seedRand(x ^ seed << 10);
 			}
 
 			float perlin(float x, float f) {

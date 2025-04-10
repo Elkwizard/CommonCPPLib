@@ -8,6 +8,8 @@
 #include <cmath>
 #include <mutex>
 #include <sstream>
+#include <chrono>
+#include <thread>
 
 namespace util {
 	namespace debug {

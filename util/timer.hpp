@@ -65,6 +65,14 @@ namespace util {
 				).count();
 			}
 
+			static double getMilliseconds() {
+				return getTime() / 1000.0;
+			}
+
+			static double getSeconds() {
+				return getMilliseconds() / 1000.0;
+			}
+
 			static std::string getSummaryString() { std::unique_lock lock { mutex };
 				checksSinceLastSummary++;
 				if (getTime() - lastSummaryTime < 100e3)

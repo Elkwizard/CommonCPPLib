@@ -18,10 +18,10 @@ namespace gl {
 			std::unique_ptr<EventHandler> callback;
 
 		public:
-			Window& w;
+			Window& window;
 			
-			GL(Window& _w, bool debug = true) : w(_w) {
-				dc = GetDC(w.handle);
+			GL(Window& _window, bool debug = true) : window(_window) {
+				dc = GetDC(window.handle);
 
 				PIXELFORMATDESCRIPTOR pfd = {
 					sizeof(PIXELFORMATDESCRIPTOR),
@@ -72,14 +72,14 @@ namespace gl {
 					debugMessageCallback(errorCallback, NULL);
 				}
 				
-				callback = std::make_unique<EventHandler>(w.onTimer, [&] {
+				callback = std::make_unique<EventHandler>(window.onTimer, [&] {
 					swapBuffers();
 				});
 			}
 			
 			~GL() {
 				wglDeleteContext(ctx);
-				ReleaseDC(w.handle, dc);
+				ReleaseDC(window.handle, dc);
 			}
 
 			void swapBuffers() {
