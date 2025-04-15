@@ -2,6 +2,7 @@
 
 #include "gl.hpp"
 #include "../math/util.hpp"
+#include "../util/files.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -20,10 +21,10 @@ namespace gl {
 
 				gl.texImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, NULL);
 
-				gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 				gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 				gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+				setFiltering(true);
 			}
 
 		public:
@@ -49,11 +50,11 @@ namespace gl {
 				internalFormat = GL_RGBA;
 
 				// read file
-				size_t fileSize = std::filesystem::file_size(bmpPath);
-				std::ifstream file { bmpPath, std::ios::in | std::ios::binary };
+				std::string fileContent = util::readFile(bmpPath);
 
-				std::unique_ptr<char[]> data { new char[fileSize] };
-				file.read(data.get(), fileSize);
+				std::unique_ptr<char[]> data { new char[fileContent.size()] };
+				for (int i = 0; i < fileContent.size(); i++)
+					data[i] = fileContent[i];
 
 				void* pointer = data.get();
 				#define READ_RESERVED(type) pointer = (void*)((type*)pointer + 1)
@@ -185,15 +186,26 @@ namespace gl {
 				gl.deleteTextures(1, &texture);
 			}
 
+			void setFiltering(bool linear) {
+				use();
+				GLenum filter = linear ? GL_LINEAR : GL_NEAREST;
+				gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+				gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);	
+			}
+
+			void bind(int newUnit) {
+				unit = newUnit;
+				use();
+				gl.bindTexture(GL_TEXTURE_2D, newUnit);
+			}
+
 			void use() {
 				gl.activeTexture(GL_TEXTURE0 + unit);
 			}
 
 			void set(void* data, int alignment = 4) {
 				use();
-
 				gl.pixelStorei(GL_UNPACK_ALIGNMENT, alignment);
-
 				gl.texImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, data);
 			}
 

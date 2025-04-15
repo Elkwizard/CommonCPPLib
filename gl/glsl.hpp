@@ -41,7 +41,7 @@ namespace gl {
 
 			std::string loadShaderSource(const std::string& src) {
 				std::string baseSrc = util::directoryName(src);
-				std::string source = util::normalizeLinebreaks(util::readTextFile(src));
+				std::string source = util::normalizeLinebreaks(util::readFile(src));
 				std::vector<std::string> lines = util::split<char>(source, "\n");
 				std::string result = "";
 				for (const std::string& line : lines) {

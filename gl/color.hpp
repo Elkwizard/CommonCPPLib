@@ -21,6 +21,8 @@ namespace gl {
 			static constexpr int PURPLE = 0xFF00FF;
 			static constexpr int CYAN = 0x00FFFF;
 			static constexpr int ORANGE = 0xFF9900;
+			static constexpr int BLACK = 0x000000;
+			static constexpr int WHITE = 0xFFFFFF;
 
 			T r, g, b, a;
 			

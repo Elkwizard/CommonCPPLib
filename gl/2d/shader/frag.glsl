@@ -5,6 +5,9 @@
 #define HAS(flag) (flags & flag) != 0
 #define GET(field) ((flags >> field##_OFFSET) & field##_MASK)
 
+uniform sampler2D fontAtlas;
+uniform int charWidth;
+
 in vec2 uv;
 in vec4 color;
 in float fflags;
@@ -18,6 +21,7 @@ void main() {
 	int shape = GET(SHAPE);
 	int style = GET(STYLE);
 
+	finalColor = color;
 	float aa = 1.0;
 
 	if (style == STROKE) {
@@ -36,16 +40,18 @@ void main() {
 			) discard;
 		}
 	} else if (style == FILL) {
-		if (shape == RECTANGLE) {
-
-		} else if (shape == CIRCLE) {
+		if (shape == CIRCLE) {
 			if (length(uv - 0.5) > 0.5) discard;
 		} else if (shape == TRIANGLE) {
 			if (uv.x + uv.y > 1.0) discard;
+		} else if (shape == TEXT) {
+			int chIndex = GET(CHAR);
+			float uvCharWidth = float(charWidth + 1) / float(textureSize(fontAtlas, 0).x);
+			vec2 textUV = vec2((uv.x + float(chIndex)) * uvCharWidth, 1.0 - uv.y);
+			aa *= 1.0 - texture(fontAtlas, textUV).r;
 		}
 	}
 
-	finalColor = color;
+	finalColor.a *= aa;
 	finalColor.rgb *= finalColor.a;
-	finalColor *= aa;
 }

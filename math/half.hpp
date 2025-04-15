@@ -4,7 +4,7 @@
 #include "util.hpp"
 
 namespace math {
-	struct HalfFloat {
+	class HalfFloat {
 		private:
 			short f16 = 0;
 		

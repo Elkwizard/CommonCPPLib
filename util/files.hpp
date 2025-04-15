@@ -19,17 +19,17 @@ namespace util {
 		return path.substr(location + 1);
 	}
 
-	std::string readTextFile(const std::string& path) {
+	std::string readFile(const std::string& path) {
 		if (!std::filesystem::exists(path)) rprint("cannot find file '" + path + "'");
 		std::ifstream file { path, std::ios::binary };
 		std::string content {
 			std::istreambuf_iterator<char>(file),
-			std::istreambuf_iterator<char>()
+			std::istreambuf_iterator<char>()	
 		};
 		return content;
 	}
 
-	void writeTextFile(const std::string& path, const std::string& content) {
+	void writeFile(const std::string& path, const std::string& content) {
 		std::ofstream file { path };
 		file << content;
 	}

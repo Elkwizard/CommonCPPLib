@@ -3,6 +3,7 @@
 #include "gl.hpp"
 #include "color.hpp"
 #include "glsl.hpp"
+#include "texture.hpp"
 
 namespace gl {
 	template <typename T>
@@ -18,6 +19,32 @@ namespace gl {
 	template <typename T>
 	concept PointLike = IndexablePointLike<T> || PropertyPointLike<T>;
 
+	class Font {
+		private:	
+			std::unique_ptr<Texture> atlas;
+			
+		public:
+			int charWidth, charHeight;
+			std::string charset;
+
+			Font(GL& gl, const std::string& path, int _charWidth, int _charHeight, int unit = 0) {
+				charWidth = _charWidth;
+				charHeight = _charHeight;
+				std::string fontPath = path + "/" + std::to_string(charHeight) + "by" + std::to_string(charWidth);
+				atlas = std::make_unique<Texture>(gl, unit, fontPath + "/font.bmp");
+				charset = util::readFile(fontPath + "/charset.txt");
+				atlas->setFiltering(false);
+			}
+
+			void setUnit(int unit) {
+				atlas->bind(unit);
+			}
+
+			int getUnit() {
+				return atlas->unit;
+			}
+	};
+
 	class Context2D {
 		public:
 			struct Instance {
@@ -28,11 +55,12 @@ namespace gl {
 			};
 
 		private:
-			#include "2d/masks.glsl"
+			#include "2d/shader/masks.glsl"
 
 			GL& gl;
 			std::unique_ptr<window::EventHandler> resizeHandler;
 			std::unique_ptr<GLSL> shader;
+			std::unique_ptr<Font> font;
 			GLuint vertexBuffer, instanceBuffer;
 
 			std::vector<Instance> instances;
@@ -82,7 +110,10 @@ namespace gl {
 					gl.viewport(0, 0, gl.window.client.width, gl.window.client.height);
 				});
 
-				shader = std::make_unique<GLSL>(gl, util::directoryName(__FILE__) + "/2d");
+				std::string localPath = util::directoryName(__FILE__) + "/2d";
+				shader = std::make_unique<GLSL>(gl, localPath + "/shader", [](const std::string& type, const std::string& msg) {
+					std::cout << "GLSL Error (" << type << "): \e[31m" << msg << "\e[0m";
+				});
 				
 				shader->setDivisor("vertexPosition", 0);
 				shader->setDivisor("instanceTransform", 1);
@@ -110,6 +141,12 @@ namespace gl {
 					gl.genBuffers(1, &instanceBuffer);
 					gl.bindBuffer(GL_ARRAY_BUFFER, instanceBuffer);
 					shader->divisors[1] = instanceBuffer;
+				}
+				
+				{ // text
+					font = std::make_unique<Font>(gl, localPath, 5, 15, Texture::next());
+					shader->uniforms["fontAtlas"] = font->getUnit();
+					shader->uniforms["charWidth"] = font->charWidth;
 				}
 			}
 
@@ -212,7 +249,8 @@ namespace gl {
 				float ex = ox + dx;
 				float ey = oy + dy;
 				line(ox, oy, ex, ey);
-				float scale = 1.0 / std::hypot(dx, dy);
+				float arrowSize = currentLineWidth * 5.0;
+				float scale = arrowSize / std::hypot(dx, dy);
 				float nx = -dy * scale;
 				float ny = dx * scale;
 				float bx = ex - dx * scale * 2;
@@ -224,6 +262,39 @@ namespace gl {
 			template <PointLike T>
 			void arrow(const T& o, const T& v) {
 				arrow(x(o), y(o), x(v), y(v));
+			}
+
+			void text(float fontSize, const std::string& str, float x, float y) {
+				float baseX = x;
+
+				float h = fontSize;
+				float w = font->charWidth * h / font->charHeight;
+				float padding = w * 0.1;
+
+				for (char c : str) {
+					if (c == '\n') {
+						y += h;
+						x = baseX;
+					} else {
+						if (c == '\t') {
+							x += w * 3;
+						} else if (c != ' ') {
+							int index = font->charset.find(c);
+							addInstance(
+								w, 0, x,
+								0, h, y,
+								TEXT | (index << CHAR_OFFSET)
+							);
+						}
+
+						x += w + padding;
+					}
+				}
+			}
+
+			template <PointLike T>
+			void text(float fontSize, const std::string& str, const T& location) {
+				text(fontSize, str, x(location), y(location));
 			}
 
 			void flush() {
