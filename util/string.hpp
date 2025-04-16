@@ -86,6 +86,11 @@ namespace util {
 	}
 
 	template <typename T>
+	std::vector<std::basic_string<T>> split(const std::basic_string<T>& str, const T* delim) {
+		return split(str, (std::basic_string<T>)delim);
+	}
+
+	template <typename T>
 	std::basic_string<T> join(const std::vector<std::basic_string<T>>& segments, const std::basic_string<T>& delim) {
 		if (segments.empty())
 			return std::basic_string<T>();
@@ -94,6 +99,11 @@ namespace util {
 		for (int i = 1; i < segments.size(); i++)
 			result += delim + segments[i];
 		return result;
+	}
+
+	template <typename T>
+	std::basic_string<T> join(const std::vector<std::basic_string<T>>& segments, const T* delim) {
+		return join(segments, (std::basic_string<T>)delim);
 	}
 
 	template <typename T>

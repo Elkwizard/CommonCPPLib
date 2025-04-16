@@ -25,10 +25,12 @@ void main() {
 	float aa = 1.0;
 
 	if (shape == TEXT) {
-		int chIndex = GET(CHAR);
-		float uvCharWidth = (charWidth + 1) / float(textureSize(fontAtlas, 0).x);
-		vec2 textUV = vec2((uv.x + float(chIndex)) * uvCharWidth, 1.0 - uv.y);
+		vec2 textureDims = vec2(textureSize(fontAtlas, 0));
+		float charOffset = lineWidth / textureDims.x;
+		float charWidth = (textureDims.y / textureDims.x) * (px.y / px.x);
+		vec2 textUV = vec2(uv.x * charWidth + charOffset, 1.0 - uv.y);
 		aa *= 1.0 - texture(fontAtlas, textUV).r;
+		
 	}
 
 	if (style == STROKE) {

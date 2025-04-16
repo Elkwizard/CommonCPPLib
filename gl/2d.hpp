@@ -24,15 +24,33 @@ namespace gl {
 			std::unique_ptr<Texture> atlas;
 			
 		public:
-			float charWidth, charHeight;
-			std::string charset;
+			struct CharData {
+				float offset, width;
+			};
+
+			float charHeight;
+			std::unordered_map<char, CharData> charData;
 
 			Font(GL& gl, const std::string& path, int unit, bool filter = true) {
 				atlas = std::make_unique<Texture>(gl, unit, path + "/font.bmp");
-				charset = util::readFile(path + "/charset.txt");
-				atlas->setFiltering(filter);
 				charHeight = atlas->height;
-				charWidth = (float)(atlas->width + 1) / charset.size() - 1;
+				atlas->setFiltering(filter);
+
+				std::string charset = util::readFile(path + "/charset.txt");
+				if (charset.find('\n') == -1) {
+					float charWidth = (float)(atlas->width + 1) / charset.size() - 1;
+					for (int i = 0; i < charset.size(); i++)
+						charData[charset[i]] = { (charWidth + 1) * i, charWidth };
+				} else {
+					charset = util::normalizeLinebreaks(charset);
+					for (const std::string& line : util::split(charset, "\n")) {
+						std::vector<std::string> specs = util::split(line.substr(2), ",");
+						char ch = line[0];
+						float charOffset = std::atof(specs[0].c_str());
+						float charWidth = std::atof(specs[1].c_str());
+						charData[ch] = { charOffset, charWidth };
+					}
+				}
 			}
 
 			void setUnit(int unit) {
@@ -86,7 +104,7 @@ namespace gl {
 				instances.push_back(Instance(
 					{ a, c, b, d, tx, ty },
 					currentColor,
-					flags | (currentStyle << STYLE_OFFSET),
+					flags | currentStyle << STYLE_OFFSET,
 					currentLineWidth
 				));
 			}
@@ -143,9 +161,8 @@ namespace gl {
 				}
 				
 				{ // text
-					font = std::make_unique<Font>(gl, localPath + "/Consolas", Texture::next());
+					font = std::make_unique<Font>(gl, localPath + "/fonts/Arial", Texture::next());
 					shader->uniforms["fontAtlas"] = font->getUnit();
-					shader->uniforms["charWidth"] = font->charWidth;
 				}
 			}
 
@@ -267,8 +284,8 @@ namespace gl {
 				float baseX = x;
 
 				float h = fontSize;
-				float w = font->charWidth * h / font->charHeight;
-				float padding = w * 0.1;
+				float space = h * 0.4;
+				float padding = space * 0.1;
 
 				for (char c : str) {
 					if (c == '\n') {
@@ -276,17 +293,22 @@ namespace gl {
 						x = baseX;
 					} else {
 						if (c == '\t') {
-							x += w * 3;
-						} else if (c != ' ') {
-							int index = font->charset.find(c);
+							x += space * 4;
+						} else if (c == ' ') {
+							x += space;
+						} else {
+							Font::CharData charData = font->charData[c];
+							currentLineWidth = charData.offset;
+							float charWidth = charData.width * fontSize / font->charHeight;
 							addInstance(
-								w, 0, x,
+								charWidth, 0, x,
 								0, h, y,
-								TEXT | (index << CHAR_OFFSET)
+								TEXT
 							);
+							x += charWidth;
 						}
 
-						x += w + padding;
+						x += padding;
 					}
 				}
 			}

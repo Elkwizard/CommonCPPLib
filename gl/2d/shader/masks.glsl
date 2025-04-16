@@ -13,7 +13,3 @@ const int STYLE_MASK = 1;
 
 const int FILL = 0;
 const int STROKE = 1;
-
-// text
-const int CHAR_OFFSET = 3;
-const int CHAR_MASK = 255;
