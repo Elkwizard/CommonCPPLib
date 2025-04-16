@@ -6,7 +6,7 @@
 #define GET(field) ((flags >> field##_OFFSET) & field##_MASK)
 
 uniform sampler2D fontAtlas;
-uniform int charWidth;
+uniform float charWidth;
 
 in vec2 uv;
 in vec4 color;
@@ -24,6 +24,13 @@ void main() {
 	finalColor = color;
 	float aa = 1.0;
 
+	if (shape == TEXT) {
+		int chIndex = GET(CHAR);
+		float uvCharWidth = (charWidth + 1) / float(textureSize(fontAtlas, 0).x);
+		vec2 textUV = vec2((uv.x + float(chIndex)) * uvCharWidth, 1.0 - uv.y);
+		aa *= 1.0 - texture(fontAtlas, textUV).r;
+	}
+
 	if (style == STROKE) {
 		vec2 dimensions = 1.0 / px;
 		vec2 pos = abs(uv - 0.5) * dimensions;
@@ -38,17 +45,14 @@ void main() {
 				len > dimensions.x * 0.5 ||
 				len < dimensions.x * 0.5 - lineWidth
 			) discard;
+		} else if (shape == TEXT) {
+			aa = aa > 0.0 && aa < 1.0 ? 1.0 : 0.0;
 		}
 	} else if (style == FILL) {
 		if (shape == CIRCLE) {
 			if (length(uv - 0.5) > 0.5) discard;
 		} else if (shape == TRIANGLE) {
 			if (uv.x + uv.y > 1.0) discard;
-		} else if (shape == TEXT) {
-			int chIndex = GET(CHAR);
-			float uvCharWidth = float(charWidth + 1) / float(textureSize(fontAtlas, 0).x);
-			vec2 textUV = vec2((uv.x + float(chIndex)) * uvCharWidth, 1.0 - uv.y);
-			aa *= 1.0 - texture(fontAtlas, textUV).r;
 		}
 	}
 

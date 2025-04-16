@@ -24,16 +24,15 @@ namespace gl {
 			std::unique_ptr<Texture> atlas;
 			
 		public:
-			int charWidth, charHeight;
+			float charWidth, charHeight;
 			std::string charset;
 
-			Font(GL& gl, const std::string& path, int _charWidth, int _charHeight, int unit = 0) {
-				charWidth = _charWidth;
-				charHeight = _charHeight;
-				std::string fontPath = path + "/" + std::to_string(charHeight) + "by" + std::to_string(charWidth);
-				atlas = std::make_unique<Texture>(gl, unit, fontPath + "/font.bmp");
-				charset = util::readFile(fontPath + "/charset.txt");
-				atlas->setFiltering(false);
+			Font(GL& gl, const std::string& path, int unit, bool filter = true) {
+				atlas = std::make_unique<Texture>(gl, unit, path + "/font.bmp");
+				charset = util::readFile(path + "/charset.txt");
+				atlas->setFiltering(filter);
+				charHeight = atlas->height;
+				charWidth = (float)(atlas->width + 1) / charset.size() - 1;
 			}
 
 			void setUnit(int unit) {
@@ -144,7 +143,7 @@ namespace gl {
 				}
 				
 				{ // text
-					font = std::make_unique<Font>(gl, localPath, 5, 15, Texture::next());
+					font = std::make_unique<Font>(gl, localPath + "/Consolas", Texture::next());
 					shader->uniforms["fontAtlas"] = font->getUnit();
 					shader->uniforms["charWidth"] = font->charWidth;
 				}
