@@ -227,7 +227,7 @@ namespace util {
 				backgroundTaskQueue.totalThreads = totalThreads - taskQueue.totalThreads;
 				threads.resize(totalThreads);
 				for (int i = 0; i < totalThreads; i++) {
-					threads[i].start([=] {
+					threads[i].start([=, this] {
 						try {
 							Thread& self = threads[i];
 							TaskQueue& tasks = (i < taskQueue.totalThreads) ? taskQueue : backgroundTaskQueue;
