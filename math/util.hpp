@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <type_traits>
+#include <concepts>
 
 namespace math {
 	constexpr long double PI = 3.141592653589793238462643383279502884L;
@@ -10,6 +11,9 @@ namespace math {
 	constexpr long double SQRT3 = 1.7320508075688772L;
 	
 	using uint = unsigned int;
+
+	template <typename T>
+	concept Numeric = std::integral<T> || std::floating_point<T>;
 
 	template <typename T>
 	T roundTo(T value, int digits) {

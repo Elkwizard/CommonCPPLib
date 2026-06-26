@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <cassert>
+#include <concepts>
 
 namespace math {
 	class Random {
@@ -47,6 +48,11 @@ namespace math {
 
 			float range(float min, float max) {
 				return random() * (max - min) + min;
+			}
+
+			template <typename T>
+			auto& choice(const T& container) {
+				return container[index(container.size())];
 			}
 
 			uint index(uint length) {
