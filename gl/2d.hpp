@@ -6,18 +6,40 @@
 #include "texture.hpp"
 
 namespace gl {
-	template <typename T>
-	concept IndexablePointLike = requires (T t) {
-		{t[0]} -> std::convertible_to<float>;
-		{t[1]} -> std::convertible_to<float>;
-	};
-	template <typename T>
-	concept PropertyPointLike = requires (T t) {
-		{t.x} -> std::convertible_to<float>;
-		{t.y} -> std::convertible_to<float>;
-	};
-	template <typename T>
-	concept PointLike = IndexablePointLike<T> || PropertyPointLike<T>;
+	namespace point {
+		template <typename T>
+		concept IndexablePointLike = requires (const T& t) {
+			{t[0]} -> std::convertible_to<float>;
+			{t[1]} -> std::convertible_to<float>;
+		};
+		template <typename T>
+		concept PropertyPointLike = requires (const T& t) {
+			{t.x} -> std::convertible_to<float>;
+			{t.y} -> std::convertible_to<float>;
+		};
+		template <typename T>
+		concept TuplePointLike = requires (const T& t) {
+			{std::get<0>(t)} -> std::convertible_to<float>;
+			{std::get<1>(t)} -> std::convertible_to<float>;
+		};
+		template <typename T>
+		concept PointLike = IndexablePointLike<T> || PropertyPointLike<T> || TuplePointLike<T>;
+		
+		template <IndexablePointLike T>
+		float x(const T& point) { return point[0]; }
+		template <IndexablePointLike T>
+		float y(const T& point) { return point[1]; }
+		
+		template <PropertyPointLike T>
+		float x(const T& point) { return point.x; }
+		template <PropertyPointLike T>
+		float y(const T& point) { return point.y; }
+		
+		template <TuplePointLike T>
+		float x(const T& point) { return std::get<0>(point); }
+		template <TuplePointLike T>
+		float y(const T& point) { return std::get<1>(point); }
+	}
 
 	class Font {
 		private:	
@@ -62,6 +84,10 @@ namespace gl {
 			}
 	};
 
+	using point::PointLike;
+	using point::x;
+	using point::y;
+
 	class Context2D {
 		public:
 			struct Instance {
@@ -70,7 +96,7 @@ namespace gl {
 				float flags;
 				float lineWidth;
 			};
-
+		
 		private:
 			#include "2d/shader/masks.glsl"
 
@@ -85,16 +111,6 @@ namespace gl {
 			FullColor currentColor;
 			int currentStyle;
 			float currentLineWidth, currentLineRadius;
-
-			template <IndexablePointLike T>
-			float x(const T& point) { return point[0]; }
-			template <IndexablePointLike T>
-			float y(const T& point) { return point[1]; }
-			
-			template <PropertyPointLike T>
-			float x(const T& point) { return point.x; }
-			template <PropertyPointLike T>
-			float y(const T& point) { return point.y; }
 
 			void addInstance(
 				float a, float b, float tx,
