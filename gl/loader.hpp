@@ -1,7 +1,7 @@
 #pragma once
 
-#include <gl/glcorearb.h>
-#include <gl/wglext.h>
+#include "gl/glcorearb.h"
+#include "gl/wglext.h"
 
 #pragma comment(lib, "Opengl32")
 #pragma comment(lib, "Kernel32")

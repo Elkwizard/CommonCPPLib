@@ -42,19 +42,19 @@ namespace gl {
 			std::string loadShaderSource(const std::string& src) {
 				std::string baseSrc = util::directoryName(src);
 				std::string source = util::normalizeLinebreaks(util::readFile(src));
-				std::vector<std::string> lines = util::split<char>(source, "\n");
+				std::vector<std::string_view> lines = util::split(source, "\n");
 				std::string result = "";
-				for (const std::string& line : lines) {
+				for (const std::string_view& line : lines) {
 					if (line.starts_with("#include")) {
 						std::string prefix = "#include \"";
 						std::string suffix = "\"";
-						std::string includeSrc = baseSrc + "/" + line.substr(
+						std::string includeSrc = baseSrc + "/" + (std::string)line.substr(
 							prefix.size(),
 							line.size() - prefix.size() - suffix.size()
 						);
 						std::string includedSource = loadShaderSource(includeSrc);
 						result += includedSource + "\n";
-					} else result += line + "\n";
+					} else result += (std::string)line + "\n";
 				}
 				return result;
 			}
@@ -361,7 +361,12 @@ namespace gl {
 					template <typename T>
 					void operator =(const std::vector<T>& list) {
 						gl.bindBuffer(GL_ARRAY_BUFFER, buffer);
-						gl.bufferData(GL_ARRAY_BUFFER, list.size() * sizeof(T), &list[0], GL_DYNAMIC_DRAW);
+						gl.bufferData(
+							GL_ARRAY_BUFFER,
+							list.size() * sizeof(T),
+							list.empty() ? nullptr : &list[0],
+							GL_DYNAMIC_DRAW
+						);
 						for (int i = 0; i < list.size() * sizeof(T) / sizeof(GLfloat); i++) {
 							float value = ((GLfloat*)&list[0])[i];
 							// std::cout << "floats[" << i << "] = " << value << std::endl;

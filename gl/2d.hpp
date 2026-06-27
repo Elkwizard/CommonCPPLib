@@ -43,11 +43,11 @@ namespace gl {
 						charData[charset[i]] = { (charWidth + 1) * i, charWidth };
 				} else {
 					charset = util::normalizeLinebreaks(charset);
-					for (const std::string& line : util::split(charset, "\n")) {
-						std::vector<std::string> specs = util::split(line.substr(2), ",");
+					for (const std::string_view& line : util::split(charset, "\n")) {
+						std::vector<std::string_view> specs = util::split(line.substr(2), ",");
 						char ch = line[0];
-						float charOffset = std::atof(specs[0].c_str());
-						float charWidth = std::atof(specs[1].c_str());
+						float charOffset = util::parseNumber<float>(specs[0]);
+						float charWidth = util::parseNumber<float>(specs[1]);
 						charData[ch] = { charOffset, charWidth };
 					}
 				}
@@ -129,7 +129,7 @@ namespace gl {
 
 				std::string localPath = util::directoryName(__FILE__) + "/2d";
 				shader = std::make_unique<GLSL>(gl, localPath + "/shader", [](const std::string& type, const std::string& msg) {
-					std::cout << "GLSL Error (" << type << "): \e[31m" << msg << "\e[0m";
+					std::cout << "GLSL Error (" << type << "): \x1b[31m" << msg << "\x1b[0m";
 				});
 				
 				shader->setDivisor("vertexPosition", 0);

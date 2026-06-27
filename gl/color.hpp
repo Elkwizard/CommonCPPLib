@@ -40,25 +40,32 @@ namespace gl {
 				a = 1.0f;
 			}
 
-			BaseColor(unsigned char _r, unsigned char _g, unsigned char _b, T _a = 1.0f) {
+			BaseColor(int _r, int _g, int _b, float _a = 1.0f) {
 				r = _r / 255.0f;
 				g = _g / 255.0f;
 				b = _b / 255.0f;
 				a = _a;
 			}
 
-			BaseColor(int _r, int _g, int _b, T _a = 1.0f) {
-				r = _r / 255.0f;
-				g = _g / 255.0f;
-				b = _b / 255.0f;
-				a = _a;
-			}
-
-			BaseColor(T _r, T _g, T _b, T _a = 1.0f) {
+			BaseColor(float _r, float _g, float _b, float _a = 1.0f) {
 				r = _r;
 				g = _g;
 				b = _b;
 				a = _a;
+			}
+
+			template <typename O>
+			BaseColor(const BaseColor<O>& other) {
+				*this = other;
+			}
+
+			template <typename O>
+			BaseColor& operator=(const BaseColor<O>& other) {
+				r = (T)other.r;
+				g = (T)other.g;
+				b = (T)other.b;
+				a = (T)other.a;
+				return *this;
 			}
 
 			#define COLOR_OP(op) \

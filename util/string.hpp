@@ -129,7 +129,7 @@ namespace util {
 		return stream.str();
 	}
 
-#if __STDC_VERSION__ >= 202311
+#if __cplusplus >= 202302
 	template <typename T, typename S>
 	T parseNumber(const S& str) {
 		T result;
