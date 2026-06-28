@@ -13,18 +13,14 @@
 
 namespace util {
 	namespace debug {
-		std::mutex coutMutex;
+		extern std::mutex coutMutex;
 
-		void pause(int ms) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-		}
+		void pause(int ms);
 
-		std::string formatLineNumber(const char* file, int line) {
-			return (std::string)file + ":" + leftPad(std::to_string(line), 3, '0') + " | ";
-		}
+		std::string formatLineNumber(const char* file, int line);
 		
 		template <int N>
-		void printValue(const char* expr, const char (&value)[N], bool lock) {
+		inline void printValue(const char* expr, const char (&value)[N], bool lock) {
 			if (lock) coutMutex.lock();
 			std::cout << value << std::endl;
 			std::cout.flush();
@@ -32,7 +28,7 @@ namespace util {
 		}
 		
 		template <int N>
-		void printValue(const char* expr, const wchar_t (&value)[N], bool lock) {
+		inline void printValue(const char* expr, const wchar_t (&value)[N], bool lock) {
 			if (lock) coutMutex.lock();
 			std::wcout << value << std::endl;
 			std::wcout.flush();
@@ -40,7 +36,7 @@ namespace util {
 		}
 
 		template <typename T>
-		void printValue(const char* expr, const T& value, bool lock) {
+		inline void printValue(const char* expr, const T& value, bool lock) {
 			if (lock) coutMutex.lock();
 			std::cout << expr << ": " << value << std::endl;
 			std::cout.flush();
@@ -48,7 +44,7 @@ namespace util {
 		}
 
 		template <>
-		void printValue(const char* expr, const std::wstring& value, bool lock) {
+		inline void printValue(const char* expr, const std::wstring& value, bool lock) {
 			if (lock) coutMutex.lock();
 			std::cout << expr << ": ";
 			std::cout.flush();
@@ -60,7 +56,7 @@ namespace util {
 		}
 		
 		template <typename T>
-		void uniquePrintValue(const char* expr, const T& value) {
+		inline void uniquePrintValue(const char* expr, const T& value) {
 			int maxValue = 100;
 			std::string str = std::to_string(abs(rand() % maxValue));
 			str = std::string(std::to_string(maxValue - 1).size() - str.length(), '0') + str;

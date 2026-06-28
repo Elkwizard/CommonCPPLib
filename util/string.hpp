@@ -14,12 +14,7 @@ namespace util {
 	template <typename S>
 	using CharType = std::decay_t<decltype(std::declval<S>()[0])>;
 
-	std::wstring widen(const std::string& str) {
-		std::wstring result = L"";
-		for (char c : str)
-			result += (wchar_t)c;
-		return result;
-	}
+	std::wstring widen(const std::string& str);
 
 	template <typename T>
 	struct TypeNameStruct {
