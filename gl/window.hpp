@@ -11,6 +11,12 @@
 #include <functional>
 #include <unordered_map>
 
+#ifdef COMMON_CPP_VULKAN
+#define VK_USE_PLATFORM_WIN32_KHR
+#define VULKAN_HPP_NO_STRUCT_CONSTRUCTORS
+#include <vulkan/vulkan_raii.hpp>
+#endif
+
 namespace window {
 	class Point {
 		public:
@@ -215,6 +221,17 @@ namespace window {
 			bool focused() {
 				return GetFocus() == handle;
 			}
+
+#ifdef COMMON_CPP_VULKAN
+			vk::raii::SurfaceKHR createSurface(const vk::raii::Instance& instance) {
+				vk::Win32SurfaceCreateInfoKHR createInfo {
+					.hinstance = appInstance,
+					.hwnd = handle
+				};
+
+				return instance.createWin32SurfaceKHR(createInfo);
+			}
+#endif
 
 		private:
 			void adjustSize(bool callback = false) {
