@@ -20,7 +20,9 @@ namespace util {
 	}
 
 	std::string readFile(const std::string& path) {
-		if (!std::filesystem::exists(path)) rprint("cannot find file '" + path + "'");
+		if (!std::filesystem::exists(path))
+			throw std::runtime_error("cannot find file '" + path + "'");
+	
 		std::ifstream file { path, std::ios::binary };
 		std::string content {
 			std::istreambuf_iterator<char>(file),
