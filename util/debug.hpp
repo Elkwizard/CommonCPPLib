@@ -70,32 +70,20 @@ namespace util {
 
 // #define LOG_LINE_NUMBERS
 
-#ifdef LOG_LINE_NUMBERS
+#ifdef PRINT_LINE_NUMBERS
 
 #define FORMATTED_LN util::debug::formatLineNumber(__FILE__, __LINE__)
-#define log(v) util::debug::logValue((FORMATTED_LN + #v).c_str(), (v), true)
-#define ulog(v) util::debug::uniqueLogValue((FORMATTED_LN + #v).c_str(), (v));
-#define rlog(v) std::cout << FORMATTED_LN << v << std::endl
+#define PRINT(v) util::debug::logValue((FORMATTED_LN + #v).c_str(), (v), true)
+#define UPRINT(v) util::debug::uniqueLogValue((FORMATTED_LN + #v).c_str(), (v));
+#define RPRINT(v) std::cout << FORMATTED_LN << v << std::endl
 
 #else
 
-#define log(v) util::debug::logValue(#v, (v), true)
-#define ulog(v) util::debug::uniqueLogValue(#v, (v));
-#define rlog(v) std::cout << v << std::endl
+#define PRINT(v) util::debug::logValue(#v, (v), true)
+#define UPRINT(v) util::debug::uniqueLogValue(#v, (v));
+#define RPRINT(v) std::cout << v << std::endl
 
 #endif
 
-#define alert(v) MessageBoxA(NULL, std::to_string(v).c_str(), "Alert", MB_OK)
-#define palert(v) do { log(v); alert(v); } while (false)
-
-#ifdef LOG_CONSTRUCTION
-
-#define CONSTRUCT(type) std::cout << "Constructed " #type << std::endl
-#define DESTRUCT(type) std::cout << "Destructed " #type << std::endl
-
-#else
-
-#define CONSTRUCT(type) #type
-#define DESTRUCT(type) #type
-
-#endif
+#define ALERT(v) MessageBoxA(NULL, std::to_string(v).c_str(), "Alert", MB_OK)
+#define PALERT(v) do { PRINT(v); ALERT(v); } while (false)

@@ -59,7 +59,7 @@ namespace gl {
 				void* pointer = data.get();
 				#define READ_RESERVED(type) pointer = (void*)((type*)pointer + 1)
 				#define READ_FIELD(type, name) type name = *(type*)pointer; READ_RESERVED(type);
-				// #define READ_FIELD_P(type, name) READ_FIELD(type, name); log(name)
+				// #define READ_FIELD_P(type, name) READ_FIELD(type, name); PRINT(name)
 				#define READ_ARRAY(type, count, name) type* name = (type*)pointer; pointer = (void*)((type*)pointer + count)
 
 				// Bitmap File Header

@@ -253,7 +253,7 @@ namespace util {
 							}
 
 						} catch (const std::exception& err) {
-							log(err.what());
+							PRINT(err.what());
 						}
 					});
 				}
