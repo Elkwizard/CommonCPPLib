@@ -25,15 +25,15 @@ namespace math {
 			template <typename... Args>
 			BaseVectorLike(T first, T second, Args... args) : m{ first, second, (T)args... } { }
 
-			BaseVectorLike(const Self& other) {
-				for (size_t i = 0; i < S; i++)
-					m[i] = other[i];
+			template <typename K, size_t S2> requires (S2 <= S)
+			BaseVectorLike(const BaseVectorLike<K, T, S2>& other) {
+				*this = other;
 			}
 
-			template <typename K, size_t S2> requires (S2 >= S)
+			template <typename K, size_t S2> requires (S2 <= S)
 			Self& operator =(const BaseVectorLike<K, T, S2>& other) {
-				size_t size = min(S, S2);
-				for (size_t i = 0; i < size; i++)
+				size_t copySize = min(S, S2);
+				for (size_t i = 0; i < copySize; i++)
 					m[i] = other[i];
 				return static_cast<Self&>(*this);
 			}
@@ -132,6 +132,7 @@ namespace math {
 
 		public:
 			using BaseVectorLike<Vector, T, S>::BaseVectorLike;
+			using BaseVectorLike<Vector, T, S>::operator=;
 
 			T mag() const {
 				return sqrt(this->sqrMag());
@@ -284,7 +285,7 @@ namespace math {
 			using HVector = BaseVectorN<T, C - 1>;
 			using Minor = BaseMatrixN<T, std::max(size_t{1}, R - 1), std::max(size_t{1}, C - 1)>;
 
-			static Vector homogenous(const HVector& v) {
+			static Vector homogeneous(const HVector& v) {
 				Vector result = v;
 				result[C - 1] = 1;
 				return result;
@@ -333,14 +334,14 @@ namespace math {
 				return *this;
 			}
 
-			HVector homogenousMult(const HVector& v) const {
-				Vector product = (*this) * homogenous(v);
+			HVector homogeneousMult(const HVector& v) const {
+				Vector product = (*this) * homogeneous(v);
 				product /= product[C - 1];
 				return product;
 			}
 
 			HVector operator *(const HVector& v) const {
-				return (*this) * homogenous(v);
+				return (*this) * homogeneous(v);
 			}
 
 			Vector operator *(const Vector& v) const {
@@ -641,8 +642,9 @@ namespace math {
 			static Matrix translation(const HVector& offset) {
 				static_assert(C == R && R == 4, "Cannot construct non-3D translation matrix");
 
-				Matrix result { };
+				Matrix result;
 				result.axes[3] = offset;
+				result.m[3][3] = 1;
 				return result;
 			}
 
@@ -662,6 +664,19 @@ namespace math {
 					0, -u[2], u[1],
 					u[2], 0, -u[0],
 					-u[1], u[0], 0
+				};
+			}
+
+			static Matrix perspective(T ar, T fov, T zn, T zf) {
+				static_assert(C == R && R == 4, "Cannot construct non-3D perspective matrix");
+
+				T zr = zf - zn;
+				T f = 1 / std::tan(fov / 2);
+				return {
+					ar * f, 0,	0,					0,
+					0,		f,	0,					0,
+					0,		0,	(zf + zn) / zr,		1,
+					0,		0,	-2 * zf * zn / zr,	0
 				};
 			}
 	};
