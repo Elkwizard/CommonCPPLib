@@ -8,13 +8,13 @@
 
 namespace util {
 	std::string directoryName(const std::string& path) {
-		int location = path.find_last_of("/\\");
+		size_t location = path.find_last_of("/\\");
 		if (location == -1) return ".";
 		return path.substr(0, location);
 	}
 
 	std::string fileName(const std::string& path) {
-		int location = path.find_last_of("/\\");
+		size_t location = path.find_last_of("/\\");
 		if (location == -1) return path;
 		return path.substr(location + 1);
 	}

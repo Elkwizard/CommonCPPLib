@@ -11,13 +11,6 @@
 #include <functional>
 #include <unordered_map>
 
-#ifdef COMMON_CPP_VULKAN
-#define VULKAN_HPP_HANDLE_ERROR_OUT_OF_DATE_AS_SUCCESS
-#define VK_USE_PLATFORM_WIN32_KHR
-#define VULKAN_HPP_NO_STRUCT_CONSTRUCTORS
-#include <vulkan/vulkan_raii.hpp>
-#endif
-
 namespace window {
 	class Point {
 		public:
@@ -223,7 +216,7 @@ namespace window {
 				return GetFocus() == handle;
 			}
 
-#ifdef COMMON_CPP_VULKAN
+#ifdef VULKAN_HPP
 			vk::raii::SurfaceKHR createSurface(const vk::raii::Instance& instance) {
 				vk::Win32SurfaceCreateInfoKHR createInfo {
 					.hinstance = appInstance,
@@ -293,13 +286,13 @@ namespace window {
 			std::unique_ptr<EventHandler> callback;
 
 		protected:
-			std::unordered_map<std::string, short> keyMap;
+			std::unordered_map<std::string, int> keyMap;
 			std::unordered_map<std::string, bool> keysDown;
 			std::unordered_map<std::string, int> keyDownCounts;
 			Window& w;
 		
 		public:
-			Input(Window& _w, std::unordered_map<std::string, short> _keyMap) : w(_w) {
+			Input(Window& _w, std::unordered_map<std::string, int> _keyMap) : w(_w) {
 				keyMap = _keyMap;
 				for (const auto& [key, id] : keyMap) {
 					keyDownCounts.emplace(key, 0);
