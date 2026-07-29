@@ -21,7 +21,7 @@ namespace math {
 	
 				if (f32 != 0.0f) {
 					f16 = 0;
-					short exp = clamp(exponent, -14, 15) + 15;
+					short exp = static_cast<short>(clamp(exponent, -14, 15) + 15);
 					f16 |= sign << 15;
 					f16 |= exp << 10;
 					f16 |= mantissa >> 13;	

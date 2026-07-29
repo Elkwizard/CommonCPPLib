@@ -3,7 +3,7 @@
 #include "../math/util.hpp"
 #include "../math/half.hpp"
 
-#include <string>
+#include <iostream>
 
 namespace gl {
 	template <typename T>
