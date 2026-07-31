@@ -63,7 +63,7 @@ namespace math {
 
 	template <typename T>
 	int firstBitIndex(T value) {
-		return std::log2(value & ~value);
+		return static_cast<int>(std::log2(value & ~value));
 	}
 
 	template <typename T>

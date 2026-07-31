@@ -22,7 +22,7 @@ namespace gl {
 		if (Signature[0] != 'B' || Signature[1] != 'M')
 			throw std::runtime_error("Incorrect bitmap signature");
 		
-		READ_FIELD(int, FileSize);
+		READ_RESERVED(int);
 		READ_RESERVED(short);
 		READ_RESERVED(short);
 		READ_FIELD(int, PixelDataOffset);
