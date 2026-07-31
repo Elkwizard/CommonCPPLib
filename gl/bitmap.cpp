@@ -58,8 +58,9 @@ namespace gl {
 		struct BGR {
 			unsigned char b, g, r;
 		};
-		
-		std::unique_ptr<BGR[]> imageData { new BGR[width * height] };
+
+		size_t totalPixels = width * height;
+		std::unique_ptr<BGR[]> imageData { new BGR[totalPixels] };
 
 		if (bpp == 32) {
 			READ_FIELD(unsigned int, RedChannelMask);
@@ -117,10 +118,14 @@ namespace gl {
 			throw std::runtime_error("Unsupported bitmap bits-per-pixel");
 		}
 
-		pixels = std::make_unique<RGB[]>(width * height);
-		for (int i = 0; i < width * height; i++) {
-			BGR data = imageData[i];
-			pixels[i] = { data.r, data.g, data.b, 255 };
+		pixels = std::make_unique<RGB[]>(totalPixels);
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				int srcIndex = width * y + x;
+				int dstIndex = width * (height - y - 1) + x;
+				BGR data = imageData[srcIndex];
+				pixels[dstIndex] = { data.r, data.g, data.b, 255 };
+			}
 		}
 
 		#undef READ_RESERVED
