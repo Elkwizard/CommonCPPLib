@@ -3,7 +3,6 @@
 #include "../util/files.hpp"
 #include "../math/util.hpp"
 #include <stdexcept>
-#include <iostream>
 
 namespace gl {
 	Bitmap::Bitmap(const std::string& path) {
@@ -20,7 +19,6 @@ namespace gl {
 
 		// Bitmap File Header
 		READ_ARRAY(char, 2, Signature);
-		std::cout << Signature[0] << Signature[1] << std::endl;
 		if (Signature[0] != 'B' || Signature[1] != 'M')
 			throw std::runtime_error("Incorrect bitmap signature");
 		
