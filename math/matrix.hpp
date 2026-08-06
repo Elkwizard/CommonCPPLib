@@ -667,16 +667,19 @@ namespace math {
 				};
 			}
 
-			static Matrix perspective(T ar, T fov, T zn, T zf) {
+			static Matrix perspective(T ar, T fov, T zn, T zf, T ndcMin = -1, T ndcMax = 1) {
 				static_assert(C == R && R == 4, "Cannot construct non-3D perspective matrix");
 
 				T zr = zf - zn;
 				T f = 1 / std::tan(fov / 2);
+				T ndcr = ndcMax - ndcMin;
+				T a = ndcMin + ndcr * (1 + (zf + zn) / zr) / 2;
+				T b = -zf * zn * ndcr / zr;
 				return {
-					ar * f, 0,	0,					0,
-					0,		f,	0,					0,
-					0,		0,	(zf + zn) / zr,		1,
-					0,		0,	-2 * zf * zn / zr,	0
+					ar * f, 0,	0,	0,
+					0,		f,	0,	0,
+					0,		0,	a,	1,
+					0,		0,	b,	0
 				};
 			}
 	};
