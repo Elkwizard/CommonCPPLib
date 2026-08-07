@@ -12,7 +12,7 @@ namespace math {
 			Range(const T& _min, const T& _max)
 			: min(_min), max(_max) { }
 
-			Range clip(const Range& other) {
+			Range clip(const Range& other) const {
 				return {
 					math::max(min, other.min),
 					math::min(max, other.max)

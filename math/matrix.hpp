@@ -5,6 +5,7 @@
 #include <iostream>
 #include <concepts>
 #include <cmath>
+#include <array>
 
 namespace math {
 	template <typename Self, Numeric T, size_t S>
@@ -14,6 +15,7 @@ namespace math {
 
 		public:
 			static constexpr size_t size = S;
+			using Element = T;
 
 			BaseVectorLike() : BaseVectorLike(0) { }
 
@@ -119,8 +121,34 @@ namespace math {
 		return out;
 	}
 
+	template <typename T>
+	concept VectorLike = std::derived_from<T, BaseVectorLike<T, typename T::Element, T::size>>;
+
+	template <VectorLike T>
+	T min(const T& a, const T& b) {
+		T result = a;
+		for (size_t i = 0; i < T::size; i++)
+			result[i] = min(result[i], b[i]);
+		return result;
+	}
+
+	template <VectorLike T>
+	T max(const T& a, const T& b) {
+		T result = a;
+		for (size_t i = 0; i < T::size; i++)
+			result[i] = max(result[i], b[i]);
+		return result;
+	}
+
 	template <std::integral T, size_t S>
-	class BaseCoordN : public BaseVectorLike<BaseCoordN<T, S>, T, S> { };
+	class BaseCoordN : public BaseVectorLike<BaseCoordN<T, S>, T, S> {
+		private:
+			using Coord = BaseCoordN<T, S>;
+
+		public:
+			using BaseVectorLike<Coord, T, S>::BaseVectorLike;
+			using BaseVectorLike<Coord, T, S>::operator=;
+	};
 
 	using Coord2 = BaseCoordN<int, 2>;
 	using Coord3 = BaseCoordN<int, 3>;
@@ -260,22 +288,6 @@ namespace math {
 	VECTOR_1_ARG_FN(exp2)
 
 #undef VECTOR_1_ARG_FN
-
-	template <typename K, Numeric T, size_t S>
-	BaseVectorLike<K, T, S> min(const BaseVectorLike<K, T, S>& a, const BaseVectorLike<K, T, S>& b) {
-		BaseVectorLike<K, T, S> result = a;
-		for (size_t i = 0; i < S; i++)
-			result[i] = min(result[i], b[i]);
-		return result;
-	}
-	
-	template <typename K, Numeric T, size_t S>
-	BaseVectorLike<K, T, S> max(const BaseVectorLike<K, T, S>& a, const BaseVectorLike<K, T, S>& b) {
-		BaseVectorLike<K, T, S> result = a;
-		for (size_t i = 0; i < S; i++)
-			result[i] = max(result[i], b[i]);
-		return result;
-	}
 
 	template <typename T, size_t R, size_t C>
 	union BaseMatrixN {
