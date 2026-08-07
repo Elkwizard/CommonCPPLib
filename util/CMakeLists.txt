@@ -3,4 +3,5 @@ target_sources(CommonCPP
 		debug.cpp
 		string.cpp
 		files.cpp
+		events.cpp
 )

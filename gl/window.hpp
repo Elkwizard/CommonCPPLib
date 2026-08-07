@@ -3,6 +3,7 @@
 #include "../util/windows.hpp"
 #include "../util/debug.hpp"
 #include "../util/string.hpp"
+#include "../util/events.hpp"
 
 #include <iostream>
 #include <cmath>
@@ -49,50 +50,6 @@ namespace window {
 
 	std::ostream& operator <<(std::ostream& out, const Rect& rect);
 
-	using CallbackID = int;
-	
-	class Event {
-		public:
-			using Callback = std::function<void()>;
-
-		private:
-			std::unordered_map<CallbackID, Callback> callbacks; 
-			int nextID = 0;
-
-		public:
-			Event() { }
-
-			CallbackID operator ()(const Callback& fn) {
-				CallbackID id = nextID++;
-				callbacks.emplace(id, fn);
-				return id;
-			}
-
-			void remove(CallbackID id) {
-				callbacks.erase(id);
-			}
-
-			void run() {
-				for (const auto& callback : callbacks)
-					callback.second();
-			}
-	};
-	
-	class EventHandler {
-		private:
-			CallbackID id;
-			Event& event;
-
-		public:
-			EventHandler(Event& _event, const Event::Callback& fn) : event(_event) {
-				id = event(fn);
-			}
-
-			~EventHandler() {
-				event.remove(id);
-			}
-	};
-
 	class Window {
 		private:
 			HINSTANCE appInstance;
@@ -103,8 +60,8 @@ namespace window {
 			}
 			
 		public:
-			Event onTimer { };
-			Event onResize { };
+			util::Event onTimer { };
+			util::Event onResize { };
 			HWND handle;
 			Rect location;
 			Rect client;
@@ -283,7 +240,7 @@ namespace window {
 			static constexpr int REPEAT_DELAY = 20;
 			static constexpr int REPEAT_INTERVAL = 3;
 			
-			std::unique_ptr<EventHandler> callback;
+			std::unique_ptr<util::EventHandler> callback;
 
 		protected:
 			std::unordered_map<std::string, int> keyMap;
@@ -300,7 +257,7 @@ namespace window {
 				}
 				
 				// update
-				callback = std::make_unique<EventHandler>(w.onTimer, [&]() {
+				callback = std::make_unique<util::EventHandler>(w.onTimer, [&]() {
 					bool focused = w.focused();
 					for (const auto& [key, id] : keyMap) {
 						keysDown.at(key) = focused && GetAsyncKeyState(id);
@@ -341,7 +298,7 @@ namespace window {
 			Point lockPoint;
 			bool locked = false;
 			int timeFocused = 0;
-			std::unique_ptr<EventHandler> callback;
+			std::unique_ptr<util::EventHandler> callback;
 
 		public:
 			int movementX = 0, movementY = 0;
@@ -351,7 +308,7 @@ namespace window {
 				{ "Middle", VK_MBUTTON },
 				{ "Right", VK_RBUTTON },
 			}) {
-				callback = std::make_unique<EventHandler>(w.onTimer, [&]() {
+				callback = std::make_unique<util::EventHandler>(w.onTimer, [&]() {
 					POINT mouse;
 					
 					GetCursorPos(&mouse);
